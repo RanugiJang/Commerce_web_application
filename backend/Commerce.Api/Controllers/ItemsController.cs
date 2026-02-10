@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Commerce.Api.Controllers;
 
 [ApiController]
-[Route("api/[controller]")] // => /api/Items
+[Route("api/[controller]")]
 public class ItemsController : ControllerBase
 {
     private readonly AppDbContext _db;
@@ -17,33 +17,61 @@ public class ItemsController : ControllerBase
         _db = db;
     }
 
-    // GET: /api/Items
-    // If you want this protected, keep [Authorize]
-    [Authorize]
+    // PUBLIC (no token)
     [HttpGet]
-    public async Task<ActionResult<List<Item>>> GetAll()
+    [AllowAnonymous]
+    public async Task<IActionResult> GetAll()
     {
         var items = await _db.Items.ToListAsync();
         return Ok(items);
     }
 
-    // POST: /api/Items
-    [Authorize(Roles = "ADMIN")]
+    //USER or ADMIN (token required)
+    [HttpGet("{id}")]
+    [Authorize]
+    public async Task<IActionResult> GetById(int id)
+    {
+        var item = await _db.Items.FindAsync(id);
+        if (item == null) return NotFound();
+        return Ok(item);
+    }
+
+    //ADMIN only
     [HttpPost]
-    public async Task<ActionResult<Item>> Create(Item item)
+    [Authorize(Roles = "ADMIN")]
+    public async Task<IActionResult> Create(Item item)
     {
         _db.Items.Add(item);
         await _db.SaveChangesAsync();
-        return CreatedAtAction(nameof(GetById), new { id = item.Id }, item);
+        return Ok(item);
     }
 
-    // GET: /api/Items/5
-    [Authorize]
-    [HttpGet("{id:int}")]
-    public async Task<ActionResult<Item>> GetById(int id)
+    //ADMIN only
+    [HttpPut("{id}")]
+    [Authorize(Roles = "ADMIN")]
+    public async Task<IActionResult> Update(int id, Item item)
+    {
+        var existing = await _db.Items.FindAsync(id);
+        if (existing == null) return NotFound();
+
+        existing.Name = item.Name;
+        existing.Rate = item.Rate;
+        existing.Quantity = item.Quantity;
+
+        await _db.SaveChangesAsync();
+        return Ok(existing);
+    }
+
+    //ADMIN only
+    [HttpDelete("{id}")]
+    [Authorize(Roles = "ADMIN")]
+    public async Task<IActionResult> Delete(int id)
     {
         var item = await _db.Items.FindAsync(id);
-        if (item == null) return NotFound("Item not found");
-        return Ok(item);
+        if (item == null) return NotFound();
+
+        _db.Items.Remove(item);
+        await _db.SaveChangesAsync();
+        return Ok("Item deleted");
     }
 }

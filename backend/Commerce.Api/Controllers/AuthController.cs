@@ -2,6 +2,7 @@ using Commerce.Api.Data;
 using Commerce.Api.DTOs;
 using Commerce.Api.Helpers;
 using Commerce.Api.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -106,6 +107,7 @@ public class AuthController : ControllerBase
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
+    [AllowAnonymous]
     [HttpGet("test")]
 public IActionResult Test()
 {

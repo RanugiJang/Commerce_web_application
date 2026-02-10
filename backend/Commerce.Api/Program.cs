@@ -49,5 +49,5 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-
+app.MapGet("/", () => "Welcome to Commerce API!");
 app.Run();
