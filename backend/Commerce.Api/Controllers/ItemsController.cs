@@ -1,4 +1,5 @@
 using Commerce.Api.Data;
+using Commerce.Api.DTOs;
 using Commerce.Api.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -17,61 +18,70 @@ public class ItemsController : ControllerBase
         _db = db;
     }
 
-    // PUBLIC (no token)
+    //USER + ADMIN (must be logged in)
+    [Authorize]
     [HttpGet]
-    [AllowAnonymous]
-    public async Task<IActionResult> GetAll()
+    public async Task<ActionResult<List<Item>>> GetAll()
     {
-        var items = await _db.Items.ToListAsync();
+        var items = await _db.Items.OrderBy(i => i.Id).ToListAsync();
         return Ok(items);
     }
 
-    //USER or ADMIN (token required)
-    [HttpGet("{id}")]
+    //USER + ADMIN (must be logged in)
     [Authorize]
-    public async Task<IActionResult> GetById(int id)
+    [HttpGet("{id:int}")]
+    public async Task<ActionResult<Item>> GetById(int id)
     {
         var item = await _db.Items.FindAsync(id);
-        if (item == null) return NotFound();
+        if (item is null) return NotFound("Item not found.");
         return Ok(item);
     }
 
     //ADMIN only
-    [HttpPost]
     [Authorize(Roles = "ADMIN")]
-    public async Task<IActionResult> Create(Item item)
+    [HttpPost]
+    public async Task<ActionResult<Item>> Create([FromBody] CreateItemDto dto)
     {
+        var item = new Item
+        {
+            Name = dto.Name.Trim(),
+            Rate = dto.Price,
+            Quantity = dto.Stock
+        };
+
         _db.Items.Add(item);
         await _db.SaveChangesAsync();
+
+        return CreatedAtAction(nameof(GetById), new { id = item.Id }, item);
+    }
+
+    // ✅ ADMIN only
+    [Authorize(Roles = "ADMIN")]
+    [HttpPut("{id:int}")]
+    public async Task<ActionResult<Item>> Update(int id, [FromBody] UpdateItemDto dto)
+    {
+        var item = await _db.Items.FindAsync(id);
+        if (item is null) return NotFound("Item not found.");
+
+        item.Name = dto.Name.Trim();
+        item.Rate = dto.Price;
+        item.Quantity = dto.Stock;
+
+        await _db.SaveChangesAsync();
         return Ok(item);
     }
 
     //ADMIN only
-    [HttpPut("{id}")]
     [Authorize(Roles = "ADMIN")]
-    public async Task<IActionResult> Update(int id, Item item)
-    {
-        var existing = await _db.Items.FindAsync(id);
-        if (existing == null) return NotFound();
-
-        existing.Name = item.Name;
-        existing.Rate = item.Rate;
-        existing.Quantity = item.Quantity;
-
-        await _db.SaveChangesAsync();
-        return Ok(existing);
-    }
-
-    //ADMIN only
-    [HttpDelete("{id}")]
-    [Authorize(Roles = "ADMIN")]
+    [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {
         var item = await _db.Items.FindAsync(id);
-        if (item == null) return NotFound();
+        if (item is null) return NotFound("Item not found.");
 
         _db.Items.Remove(item);
         await _db.SaveChangesAsync();
-        return Ok("Item deleted");
+
+        return Ok("Deleted.");
     }
 }
