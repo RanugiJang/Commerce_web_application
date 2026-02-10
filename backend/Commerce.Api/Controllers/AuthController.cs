@@ -105,4 +105,11 @@ public class AuthController : ControllerBase
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
+
+    [HttpGet("test")]
+public IActionResult Test()
+{
+    return Ok("Auth controller works");
+}
+
 }

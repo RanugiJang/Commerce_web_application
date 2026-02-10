@@ -1,19 +1,15 @@
 using Commerce.Api.Data;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
-
 var builder = WebApplication.CreateBuilder(args);
 
+// -------------------- SERVICES --------------------
 
 // Controllers
 builder.Services.AddControllers();
-
-// Swagger
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
 // Database (MySQL)
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -49,13 +45,6 @@ var app = builder.Build();
 
 // -------------------- MIDDLEWARE --------------------
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-
-// app.UseHttpsRedirection(); // optional
 app.UseAuthentication();
 app.UseAuthorization();
 
