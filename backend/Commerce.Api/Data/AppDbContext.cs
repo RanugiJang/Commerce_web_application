@@ -12,7 +12,7 @@ public class AppDbContext : DbContext
     // These DbSets become tables in MySQL when you run migrations
     public DbSet<User> Users => Set<User>();
     public DbSet<Role> Roles => Set<Role>();
-    public DbSet<Item> Items => Set<Item>();
+    public DbSet<Item> Items {get; set;}
     public DbSet<Cart> Carts { get; set; }
     public DbSet<CartItem> CartItems { get; set; }
 

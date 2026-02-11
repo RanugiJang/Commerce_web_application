@@ -12,24 +12,22 @@ using System.Text;
 
 namespace Commerce.Api.Controllers;
 
-[ApiController]                      // Marks this as a Web API controller
-[Route("api/[controller]")]           // URL becomes /api/auth
+[ApiController]
+[Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
     private readonly AppDbContext _db;
     private readonly IConfiguration _config;
 
-    // Constructor injection
     public AuthController(AppDbContext db, IConfiguration config)
     {
         _db = db;
         _config = config;
     }
 
-    // POST: api/auth/register
-    // Creates a USER or ADMIN (you can restrict ADMIN creation later)
+    // POST: /api/Auth/register
     [HttpPost("register")]
-    public async Task<ActionResult<AuthResponseDto>> Register(RegisterRequestDto req)
+    public async Task<ActionResult<AuthResponseDto>> Register([FromBody] RegisterRequestDto req)
     {
         var email = req.Email.Trim().ToLower();
 
@@ -55,12 +53,18 @@ public class AuthController : ControllerBase
         await _db.SaveChangesAsync();
 
         var token = CreateJwtToken(user.Email, role.Name);
-        return Ok(new AuthResponseDto { Token = token, Email = user.Email, Role = role.Name });
+
+        return Ok(new AuthResponseDto
+        {
+            Token = token,
+            Email = user.Email,
+            Role = role.Name
+        });
     }
 
-    // POST: api/auth/login
+    // POST: /api/Auth/login
     [HttpPost("login")]
-    public async Task<ActionResult<AuthResponseDto>> Login(LoginRequestDto req)
+    public async Task<ActionResult<AuthResponseDto>> Login([FromBody] LoginRequestDto req)
     {
         var email = req.Email.Trim().ToLower();
 
@@ -76,7 +80,22 @@ public class AuthController : ControllerBase
         var roleName = user.Role?.Name ?? "USER";
         var token = CreateJwtToken(user.Email, roleName);
 
-        return Ok(new AuthResponseDto { Token = token, Email = user.Email, Role = roleName });
+        return Ok(new AuthResponseDto
+        {
+            Token = token,
+            Email = user.Email,
+            Role = roleName
+        });
+    }
+
+    // GET: /api/Auth/me  (needs token)
+    [Authorize]
+    [HttpGet("me")]
+    public IActionResult Me()
+    {
+        var email = User.FindFirstValue(ClaimTypes.Email) ?? User.Identity?.Name;
+        var role = User.FindFirstValue(ClaimTypes.Role);
+        return Ok(new { email, role });
     }
 
     private string CreateJwtToken(string email, string role)
@@ -106,12 +125,4 @@ public class AuthController : ControllerBase
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
-
-    [AllowAnonymous]
-    [HttpGet("test")]
-public IActionResult Test()
-{
-    return Ok("Auth controller works");
-}
-
 }

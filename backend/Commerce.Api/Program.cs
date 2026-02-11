@@ -6,8 +6,6 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// -------------------- SERVICES --------------------
-
 // Controllers
 builder.Services.AddControllers();
 
@@ -15,9 +13,7 @@ builder.Services.AddControllers();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(
         builder.Configuration.GetConnectionString("DefaultConnection"),
-        ServerVersion.AutoDetect(
-            builder.Configuration.GetConnectionString("DefaultConnection")
-        )
+        ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))
     )
 );
 
@@ -43,11 +39,9 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-// -------------------- MIDDLEWARE --------------------
-
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-app.MapGet("/", () => "Welcome to Commerce API!");
+
 app.Run();

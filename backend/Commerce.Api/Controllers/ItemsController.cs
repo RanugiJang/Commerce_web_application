@@ -17,66 +17,61 @@ public class ItemsController : ControllerBase
         _db = db;
     }
 
-    //USER + ADMIN can view all items
+    // GET: /api/Items  (USER or ADMIN)
     [Authorize]
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<ActionResult<List<Item>>> GetAll()
     {
-        var items = await _db.Items.ToListAsync();
+        var items = await _db.Items.AsNoTracking().ToListAsync();
         return Ok(items);
     }
 
-    //USER + ADMIN can view a single item
+    // GET: /api/Items/1  (USER or ADMIN)
     [Authorize]
     [HttpGet("{id:int}")]
-    public async Task<IActionResult> GetById(int id)
+    public async Task<ActionResult<Item>> GetById(int id)
     {
-        var item = await _db.Items.FindAsync(id);
-        if (item == null) return NotFound("Item not found.");
+        var item = await _db.Items.AsNoTracking().FirstOrDefaultAsync(i => i.Id == id);
+        if (item == null) return NotFound("Item not found");
         return Ok(item);
     }
 
-    //ADMIN only can create items
+    // POST: /api/Items  (ADMIN only)
     [Authorize(Roles = "ADMIN")]
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] Item item)
+    public async Task<ActionResult<Item>> Create([FromBody] Item req)
     {
-        if (string.IsNullOrWhiteSpace(item.Name))
-            return BadRequest("Name is required.");
-
-        _db.Items.Add(item);
+        _db.Items.Add(req);
         await _db.SaveChangesAsync();
-
-        return CreatedAtAction(nameof(GetById), new { id = item.Id }, item);
+        return Ok(req);
     }
 
-    //ADMIN only can update items
+    // PUT: /api/Items/1  (ADMIN only)
     [Authorize(Roles = "ADMIN")]
     [HttpPut("{id:int}")]
-    public async Task<IActionResult> Update(int id, [FromBody] Item updated)
+    public async Task<IActionResult> Update(int id, [FromBody] Item req)
     {
-        var item = await _db.Items.FindAsync(id);
-        if (item == null) return NotFound("Item not found.");
+        var item = await _db.Items.FirstOrDefaultAsync(i => i.Id == id);
+        if (item == null) return NotFound("Item not found");
 
-        item.Name = updated.Name;
-        item.Rate = updated.Rate;
-        item.Quantity = updated.Quantity;
+        item.Name = req.Name;
+        item.Rate = req.Rate;
+        item.Quantity = req.Quantity;
 
         await _db.SaveChangesAsync();
         return Ok(item);
     }
 
-    //ADMIN only can delete items
+    // DELETE: /api/Items/1  (ADMIN only)
     [Authorize(Roles = "ADMIN")]
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var item = await _db.Items.FindAsync(id);
-        if (item == null) return NotFound("Item not found.");
+        var item = await _db.Items.FirstOrDefaultAsync(i => i.Id == id);
+        if (item == null) return NotFound("Item not found");
 
         _db.Items.Remove(item);
         await _db.SaveChangesAsync();
-
-        return Ok("Item deleted.");
+        return Ok("Deleted");
     }
 }
