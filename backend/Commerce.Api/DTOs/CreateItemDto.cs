@@ -10,8 +10,8 @@ public class CreateItemDto
 
     [Required]
     [Range(0.01, 999999)]
-    public decimal Price { get; set; }
+    public decimal Rate { get; set; }
 
     [Range(0, 999999)]
-    public int Stock { get; set; }
+    public int Quantity { get; set; }
 }

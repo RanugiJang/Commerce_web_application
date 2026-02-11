@@ -1,8 +1,7 @@
-using Commerce.Api.Data;
-using Commerce.Api.Models;
+using Commerce.Api.DTOs;
+using Commerce.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Commerce.Api.Controllers;
 
@@ -10,68 +9,72 @@ namespace Commerce.Api.Controllers;
 [Route("api/[controller]")]
 public class ItemsController : ControllerBase
 {
-    private readonly AppDbContext _db;
+    private readonly IItemService _service;
 
-    public ItemsController(AppDbContext db)
+    public ItemsController(IItemService service)
     {
-        _db = db;
+        _service = service;
     }
 
-    // GET: /api/Items  (USER or ADMIN)
-    [Authorize]
+    // USER + ADMIN can view all
     [HttpGet]
-    public async Task<ActionResult<List<Item>>> GetAll()
+    [Authorize]
+    public async Task<IActionResult> GetAll()
     {
-        var items = await _db.Items.AsNoTracking().ToListAsync();
+        var items = await _service.GetAllAsync();
         return Ok(items);
     }
 
-    // GET: /api/Items/1  (USER or ADMIN)
-    [Authorize]
+    // USER + ADMIN can view by id
     [HttpGet("{id:int}")]
-    public async Task<ActionResult<Item>> GetById(int id)
+    [Authorize]
+    public async Task<IActionResult> GetById(int id)
     {
-        var item = await _db.Items.AsNoTracking().FirstOrDefaultAsync(i => i.Id == id);
+        var item = await _service.GetByIdAsync(id);
         if (item == null) return NotFound("Item not found");
         return Ok(item);
     }
 
-    // POST: /api/Items  (ADMIN only)
-    [Authorize(Roles = "ADMIN")]
+    // ADMIN can create
     [HttpPost]
-    public async Task<ActionResult<Item>> Create([FromBody] Item req)
+    [Authorize(Roles = "ADMIN")]
+    public async Task<IActionResult> Create([FromBody] CreateItemRequestDto dto)
     {
-        _db.Items.Add(req);
-        await _db.SaveChangesAsync();
-        return Ok(req);
+        try
+        {
+            var created = await _service.CreateAsync(dto);
+            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 
-    // PUT: /api/Items/1  (ADMIN only)
-    [Authorize(Roles = "ADMIN")]
+    // ADMIN can update
     [HttpPut("{id:int}")]
-    public async Task<IActionResult> Update(int id, [FromBody] Item req)
+    [Authorize(Roles = "ADMIN")]
+    public async Task<IActionResult> Update(int id, [FromBody] UpdateItemRequestDto dto)
     {
-        var item = await _db.Items.FirstOrDefaultAsync(i => i.Id == id);
-        if (item == null) return NotFound("Item not found");
-
-        item.Name = req.Name;
-        item.Rate = req.Rate;
-        item.Quantity = req.Quantity;
-
-        await _db.SaveChangesAsync();
-        return Ok(item);
+        try
+        {
+            var updated = await _service.UpdateAsync(id, dto);
+            if (updated == null) return NotFound("Item not found");
+            return Ok(updated);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 
-    // DELETE: /api/Items/1  (ADMIN only)
-    [Authorize(Roles = "ADMIN")]
+    // ADMIN can delete
     [HttpDelete("{id:int}")]
+    [Authorize(Roles = "ADMIN")]
     public async Task<IActionResult> Delete(int id)
     {
-        var item = await _db.Items.FirstOrDefaultAsync(i => i.Id == id);
-        if (item == null) return NotFound("Item not found");
-
-        _db.Items.Remove(item);
-        await _db.SaveChangesAsync();
-        return Ok("Deleted");
+        var ok = await _service.DeleteAsync(id);
+        if (!ok) return NotFound("Item not found");
+        return NoContent();
     }
 }
