@@ -8,43 +8,66 @@ namespace Commerce.Api.Controllers;
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
-    private readonly IAuthService _auth;
+    private readonly IAuthService _authService;
 
-    public AuthController(IAuthService auth)
+    // ✅ Only ONE constructor (important)
+    public AuthController(IAuthService authService)
     {
-        _auth = auth;
+        _authService = authService;
     }
 
+    // =========================
+    // REGISTER (LOCAL USER)
+    // =========================
     [HttpPost("register")]
-    public async Task<ActionResult<AuthResponseDto>> Register(RegisterRequestDto req)
+    public async Task<ActionResult<AuthResponseDto>> Register([FromBody] RegisterRequestDto request)
     {
         try
         {
-            return Ok(await _auth.RegisterAsync(req));
+            var result = await _authService.RegisterAsync(request);
+            return Ok(result);
         }
-        catch (ArgumentException ex) { return BadRequest(ex.Message); }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 
+    // =========================
+    // LOGIN (LOCAL USER / ADMIN)
+    // =========================
     [HttpPost("login")]
-    public async Task<ActionResult<AuthResponseDto>> Login(LoginRequestDto req)
+    public async Task<ActionResult<AuthResponseDto>> Login([FromBody] LoginRequestDto request)
     {
         try
         {
-            return Ok(await _auth.LoginAsync(req));
+            var result = await _authService.LoginAsync(request);
+            return Ok(result);
         }
-        catch (UnauthorizedAccessException ex) { return Unauthorized(ex.Message); }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(ex.Message);
+        }
     }
 
+    // =========================
+    // GOOGLE LOGIN
+    // =========================
     [HttpPost("google")]
-    public async Task<ActionResult<AuthResponseDto>> Google(GoogleLoginRequestDto req)
+    public async Task<ActionResult<AuthResponseDto>> GoogleLogin([FromBody] GoogleLoginRequestDto request)
     {
         try
         {
-            return Ok(await _auth.GoogleLoginAsync(req));
+            var result = await _authService.GoogleLoginAsync(request);
+            return Ok(result);
         }
-        catch (UnauthorizedAccessException ex) { return Unauthorized(ex.Message); }
-        catch (ArgumentException ex) { return BadRequest(ex.Message); }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(ex.Message);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
-
-    
 }
