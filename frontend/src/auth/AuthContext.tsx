@@ -1,52 +1,50 @@
 import React, { createContext, useContext, useMemo, useState } from "react";
 
-type Role = "USER" | "ADMIN" | null;
+type Role = "ADMIN" | "USER" | null;
 
 type AuthState = {
   token: string | null;
-  email: string | null;
   role: Role;
+  email: string | null;
 };
 
 type AuthContextType = AuthState & {
-  login: (token: string, email: string, role: Role) => void;
+  setAuth: (token: string, role: Role, email: string) => void;
   logout: () => void;
 };
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [token, setToken] = useState<string | null>(localStorage.getItem("token"));
-  const [email, setEmail] = useState<string | null>(localStorage.getItem("email"));
   const [role, setRole] = useState<Role>((localStorage.getItem("role") as Role) ?? null);
+  const [email, setEmail] = useState<string | null>(localStorage.getItem("email"));
 
-  const login = (t: string, e: string, r: Role) => {
+  const setAuth = (t: string, r: Role, e: string) => {
     setToken(t);
-    setEmail(e);
     setRole(r);
-
+    setEmail(e);
     localStorage.setItem("token", t);
-    localStorage.setItem("email", e);
     localStorage.setItem("role", r ?? "");
+    localStorage.setItem("email", e);
   };
 
   const logout = () => {
     setToken(null);
-    setEmail(null);
     setRole(null);
-
+    setEmail(null);
     localStorage.removeItem("token");
-    localStorage.removeItem("email");
     localStorage.removeItem("role");
+    localStorage.removeItem("email");
   };
 
-  const value = useMemo(() => ({ token, email, role, login, logout }), [token, email, role]);
+  const value = useMemo(() => ({ token, role, email, setAuth, logout }), [token, role, email]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
+};
 
-export function useAuth() {
+export const useAuth = () => {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth must be used inside AuthProvider");
   return ctx;
-}
+};

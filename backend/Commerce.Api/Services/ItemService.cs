@@ -1,26 +1,31 @@
-using Commerce.Api.Data;
 using Commerce.Api.DTOs;
 using Commerce.Api.Models;
-using Microsoft.EntityFrameworkCore;
+using Commerce.Api.Repositories;
 
 namespace Commerce.Api.Services;
 
 public class ItemService : IItemService
 {
-    private readonly AppDbContext _db;
+    private readonly IItemRepository _repo;
 
-    public ItemService(AppDbContext db)
+    public ItemService(IItemRepository repo)
     {
-        _db = db;
+        _repo = repo;
+    }
+
+    public async Task<List<ItemResponseDto>> GetAllAsync()
+        => (await _repo.GetAllAsync()).Select(ToDto).ToList();
+
+    public async Task<ItemResponseDto?> GetByIdAsync(int id)
+    {
+        var item = await _repo.GetByIdAsync(id);
+        return item == null ? null : ToDto(item);
     }
 
     public async Task<ItemResponseDto> CreateAsync(CreateItemRequestDto dto)
     {
-        if (string.IsNullOrWhiteSpace(dto.Name))
-            throw new ArgumentException("Name is required.");
-
-        if (dto.Rate < 0) throw new ArgumentException("Rate cannot be negative.");
-        if (dto.Quantity < 0) throw new ArgumentException("Quantity cannot be negative.");
+        if (string.IsNullOrWhiteSpace(dto.Name)) throw new ArgumentException("Name required.");
+        if (dto.Rate <= 0) throw new ArgumentException("Rate must be > 0.");
 
         var item = new Item
         {
@@ -29,27 +34,13 @@ public class ItemService : IItemService
             Quantity = dto.Quantity
         };
 
-        _db.Items.Add(item);
-        await _db.SaveChangesAsync();
-
-        return ToDto(item);
-    }
-
-    public async Task<List<ItemResponseDto>> GetAllAsync()
-    {
-        var items = await _db.Items.AsNoTracking().ToListAsync();
-        return items.Select(ToDto).ToList();
-    }
-
-    public async Task<ItemResponseDto?> GetByIdAsync(int id)
-    {
-        var item = await _db.Items.AsNoTracking().FirstOrDefaultAsync(i => i.Id == id);
-        return item == null ? null : ToDto(item);
+        var created = await _repo.CreateAsync(item);
+        return ToDto(created);
     }
 
     public async Task<ItemResponseDto?> UpdateAsync(int id, UpdateItemRequestDto dto)
     {
-        var item = await _db.Items.FirstOrDefaultAsync(i => i.Id == id);
+        var item = await _repo.GetByIdAsync(id);
         if (item == null) return null;
 
         if (!string.IsNullOrWhiteSpace(dto.Name))
@@ -57,36 +48,24 @@ public class ItemService : IItemService
 
         if (dto.Rate.HasValue)
         {
-            if (dto.Rate.Value < 0) throw new ArgumentException("Rate cannot be negative.");
+            if (dto.Rate.Value <= 0) throw new ArgumentException("Rate must be > 0.");
             item.Rate = dto.Rate.Value;
         }
 
         if (dto.Quantity.HasValue)
-        {
-            if (dto.Quantity.Value < 0) throw new ArgumentException("Quantity cannot be negative.");
             item.Quantity = dto.Quantity.Value;
-        }
 
-        await _db.SaveChangesAsync();
-        return ToDto(item);
+        var updated = await _repo.UpdateAsync(item);
+        return updated == null ? null : ToDto(updated);
     }
 
-    public async Task<bool> DeleteAsync(int id)
+    public Task<bool> DeleteAsync(int id) => _repo.DeleteAsync(id);
+
+    private static ItemResponseDto ToDto(Item i) => new ItemResponseDto
     {
-        var item = await _db.Items.FirstOrDefaultAsync(i => i.Id == id);
-        if (item == null) return false;
-
-        _db.Items.Remove(item);
-        await _db.SaveChangesAsync();
-        return true;
-    }
-
-    private static ItemResponseDto ToDto(Item item) =>
-        new ItemResponseDto
-        {
-            Id = item.Id,
-            Name = item.Name,
-            Rate = item.Rate,
-            Quantity = item.Quantity
-        };
+        Id = i.Id,
+        Name = i.Name,
+        Rate = i.Rate,
+        Quantity = i.Quantity
+    };
 }

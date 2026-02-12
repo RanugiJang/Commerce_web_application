@@ -13,11 +13,11 @@ public class ItemRepository : IItemRepository
         _db = db;
     }
 
-    public async Task<List<Item>> GetAllAsync()
-        => await _db.Items.ToListAsync();
+    public Task<List<Item>> GetAllAsync()
+        => _db.Items.OrderByDescending(i => i.Id).ToListAsync();
 
-    public async Task<Item?> GetByIdAsync(int id)
-        => await _db.Items.FirstOrDefaultAsync(i => i.Id == id);
+    public Task<Item?> GetByIdAsync(int id)
+        => _db.Items.FirstOrDefaultAsync(i => i.Id == id);
 
     public async Task<Item> CreateAsync(Item item)
     {
@@ -26,25 +26,20 @@ public class ItemRepository : IItemRepository
         return item;
     }
 
-    public async Task<bool> UpdateAsync(Item item)
+    public async Task<Item?> UpdateAsync(Item item)
     {
         _db.Items.Update(item);
-        return await _db.SaveChangesAsync() > 0;
+        await _db.SaveChangesAsync();
+        return item;
     }
 
-    public async Task<bool> DeleteAsync(Item item)
+    public async Task<bool> DeleteAsync(int id)
     {
+        var item = await _db.Items.FindAsync(id);
+        if (item == null) return false;
+
         _db.Items.Remove(item);
-        return await _db.SaveChangesAsync() > 0;
-    }
-
-    public Task<Item> AddAsync(Item item)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<bool> DeleteAsync(int id)
-    {
-        throw new NotImplementedException();
+        await _db.SaveChangesAsync();
+        return true;
     }
 }

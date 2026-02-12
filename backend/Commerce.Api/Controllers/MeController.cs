@@ -14,7 +14,6 @@ public class MeController : ControllerBase
     {
         var email = User.FindFirstValue(ClaimTypes.Email);
         var role = User.FindFirstValue(ClaimTypes.Role);
-
         return Ok(new { email, role });
     }
 }

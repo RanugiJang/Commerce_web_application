@@ -1,35 +1,28 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import LoginPage from "./pages/LoginPage";
-import ItemsPage from "./pages/ItemsPage";
-import AdminItemsPage from "./pages/AdminItems";
+import { Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./auth/ProtectedRoute";
+import LoginPage from "./pages/LoginPage";
+import LoginAdmin from "./pages/LoginAdmin";
+import LoginUser from "./pages/LoginUser";
+import ItemsUser from "./pages/ItemsUser";
+import AdminItems from "./pages/AdminItems";
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Navigate to="/items" replace />} />
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/login/user" element={<LoginUser />} />
+      <Route path="/login/admin" element={<LoginAdmin />} />
 
-        <Route path="/login" element={<LoginPage />} />
+      <Route element={<ProtectedRoute allow="USER" />}>
+        <Route path="/user" element={<ItemsUser />} />
+      </Route>
 
-        <Route
-          path="/items"
-          element={
-            <ProtectedRoute roles={["USER", "ADMIN"]}>
-              <ItemsPage />
-            </ProtectedRoute>
-          }
-        />
+      <Route element={<ProtectedRoute allow="ADMIN" />}>
+        <Route path="/admin" element={<AdminItems />} />
+      </Route>
 
-        <Route
-          path="/admin/items"
-          element={
-            <ProtectedRoute roles={["ADMIN"]}>
-              <AdminItemsPage />
-            </ProtectedRoute>
-          }
-        />
-      </Routes>
-    </BrowserRouter>
+      <Route path="/" element={<Navigate to="/login" replace />} />
+      <Route path="*" element={<Navigate to="/login" replace />} />
+    </Routes>
   );
 }

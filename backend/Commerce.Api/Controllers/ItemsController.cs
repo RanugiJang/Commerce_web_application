@@ -16,65 +16,36 @@ public class ItemsController : ControllerBase
         _service = service;
     }
 
-    // USER + ADMIN can view all
     [HttpGet]
     [Authorize]
-    public async Task<IActionResult> GetAll()
-    {
-        var items = await _service.GetAllAsync();
-        return Ok(items);
-    }
+    public async Task<IActionResult> GetAll() => Ok(await _service.GetAllAsync());
 
-    // USER + ADMIN can view by id
     [HttpGet("{id:int}")]
     [Authorize]
     public async Task<IActionResult> GetById(int id)
     {
         var item = await _service.GetByIdAsync(id);
-        if (item == null) return NotFound("Item not found");
-        return Ok(item);
+        return item == null ? NotFound("Item not found") : Ok(item);
     }
 
-    // ADMIN can create
     [HttpPost]
     [Authorize(Roles = "ADMIN")]
-    public async Task<IActionResult> Create([FromBody] CreateItemRequestDto dto)
-    {
-        try
-        {
-            var created = await _service.CreateAsync(dto);
-            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-    }
+    public async Task<IActionResult> Create(CreateItemRequestDto dto)
+        => Created("", await _service.CreateAsync(dto));
 
-    // ADMIN can update
     [HttpPut("{id:int}")]
     [Authorize(Roles = "ADMIN")]
-    public async Task<IActionResult> Update(int id, [FromBody] UpdateItemRequestDto dto)
+    public async Task<IActionResult> Update(int id, UpdateItemRequestDto dto)
     {
-        try
-        {
-            var updated = await _service.UpdateAsync(id, dto);
-            if (updated == null) return NotFound("Item not found");
-            return Ok(updated);
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var updated = await _service.UpdateAsync(id, dto);
+        return updated == null ? NotFound("Item not found") : Ok(updated);
     }
 
-    // ADMIN can delete
     [HttpDelete("{id:int}")]
     [Authorize(Roles = "ADMIN")]
     public async Task<IActionResult> Delete(int id)
     {
         var ok = await _service.DeleteAsync(id);
-        if (!ok) return NotFound("Item not found");
-        return NoContent();
+        return ok ? NoContent() : NotFound("Item not found");
     }
 }

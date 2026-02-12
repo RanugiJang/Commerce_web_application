@@ -1,23 +1,11 @@
-import { Navigate } from "react-router-dom";
-import { isLoggedIn, getRole, type Role } from "./index";
+import { Navigate, Outlet } from "react-router-dom";
+import { useAuth } from "./AuthContext";
 
-export default function ProtectedRoute({
-  children,
-  roles,
-}: {
-  children: React.ReactNode;
-  roles?: ("ADMIN" | "USER")[];
-}) {
-  if (!isLoggedIn()) {
-    return <Navigate to="/login" replace />;
-  }
+export default function ProtectedRoute({ allow }: { allow: "ADMIN" | "USER" }) {
+  const { token, role } = useAuth();
 
-  if (roles && roles.length > 0) {
-    const role = getRole();
-    if (!role || !roles.includes(role)) {
-      return <Navigate to="/login" replace />;
-    }
-  }
+  if (!token) return <Navigate to="/login" replace />;
+  if (role !== allow) return <Navigate to="/login" replace />;
 
-  return <>{children}</>;
+  return <Outlet />;
 }
