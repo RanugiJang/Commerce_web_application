@@ -23,9 +23,9 @@ public class AuthService : IAuthService
         _config = config;
     }
 
-    // =========================
+    
     // REGISTER (LOCAL)
-    // =========================
+    
     public async Task<AuthResponseDto> RegisterAsync(RegisterRequestDto req)
     {
         var email = (req.Email ?? "").Trim().ToLower();
@@ -54,9 +54,9 @@ public class AuthService : IAuthService
         return new AuthResponseDto { Token = token, Email = user.Email, Role = role.Name };
     }
 
-    // =========================
+    
     // LOGIN (LOCAL)
-    // =========================
+    
     public async Task<AuthResponseDto> LoginAsync(LoginRequestDto req)
     {
         var email = (req.Email ?? "").Trim().ToLower();
@@ -80,9 +80,9 @@ public class AuthService : IAuthService
         return new AuthResponseDto { Token = token, Email = user.Email, Role = roleName };
     }
 
-    // =========================
+    
     // GOOGLE LOGIN (FIXED TIMEOUT)
-    // =========================
+   
     public async Task<AuthResponseDto> GoogleLoginAsync(GoogleLoginRequestDto req)
     {
         if (string.IsNullOrWhiteSpace(req.Credential))
@@ -147,9 +147,9 @@ public class AuthService : IAuthService
         };
     }
 
-    // =========================
+   
     // JWT helper
-    // =========================
+    
     private string CreateJwtToken(string email, string role)
     {
         var key = _config["Jwt:Key"];

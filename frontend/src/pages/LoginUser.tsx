@@ -1,99 +1,111 @@
+import { useState } from "react";
 import { GoogleLogin } from "@react-oauth/google";
-import { loginGoogle } from "../api/authApi";
 import { useAuth } from "../auth/AuthContext";
 import { useNavigate } from "react-router-dom";
-
+import { loginGoogle, loginUser } from "../api/authApi";
 
 export default function LoginUser() {
   const { setAuth } = useAuth();
   const nav = useNavigate();
 
-  const styles: Record<string, React.CSSProperties> = {
-    page: {
-      minHeight: "100vh",
-      maxHeight: "100vh",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      padding: 20,
-      background:
-        "radial-gradient(900px 400px at 20% 10%, rgba(34,197,94,0.16), transparent 60%), radial-gradient(900px 400px at 80% 20%, rgba(16,185,129,0.14), transparent 55%), #f7faf9",
-    },
-    card: {
-      width: "100%",
-      maxWidth: 520,
-      background: "#fff",
-      borderRadius: 18,
-      padding: "40px 35px",
-      boxShadow: "0 20px 45px rgba(0,0,0,0.08)",
-      border: "1px solid rgba(0,0,0,0.05)",
-      textAlign: "center",
-    },
-    title: {
-      margin: 0,
-      fontSize: 30,
-      fontWeight: 900,
-      color: "#0f172a",
-    },
-    subtitle: {
-      marginTop: 10,
-      fontSize: 14,
-      color: "#64748b",
-      lineHeight: 1.5,
-    },
-    hintBox: {
-      marginTop: 30,
-      padding: 12,
-      borderRadius: 12,
-      background: "rgba(34,197,94,0.08)",
-      border: "1px solid rgba(34,197,94,0.18)",
-      color: "#166534",
-      fontSize: 15,
-      fontWeight: 700,
-    },
-    googleWrap: {
-      marginTop: 40,
-      display: "flex",
-      justifyContent: "center",
-      padding: 5,
-      
-    },
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const loginWithEmail = async () => {
+    try {
+      const data = await loginUser(email, password);
+
+      if (data.role !== "USER") {
+        alert("This account is not a USER account.");
+        return;
+      }
+
+      setAuth(data.token, data.role, data.email);
+      nav("/user");
+    } catch (e: any) {
+      alert(e?.response?.data ?? "Login failed");
+    }
   };
 
   return (
-    <>
-      
+    <div className="min-h-screen flex items-center justify-center px-6
+      bg-gradient-to-br from-emerald-100 via-green-100 to-teal-200">
 
-      <div style={styles.page}>
-        <div style={styles.card}>
-          <h2 style={styles.title}>User Login</h2>
-          <p style={styles.subtitle}>
-            Sign in using your Google account to view items and access the user panel.
-          </p>
+      <div
+        className="w-full max-w-md rounded-3xl
+        px-10 py-12 text-center
+        backdrop-blur-md
+        bg-white/40
+        border border-white/50
+        shadow-2xl shadow-emerald-500/20"
+      >
+        {/* Title */}
+        <h2 className="text-4xl font-extrabold text-emerald-900">
+          User Login
+        </h2>
 
-          <div style={styles.hintBox}>Google Authentication Enabled ✅</div>
+        <p className="mt-2 text-sm text-emerald-800/70">
+          Login using Google or Email & Password
+        </p>
 
-          <div style={styles.googleWrap}>
-            <GoogleLogin
-              onSuccess={async (res) => {
-                console.log("Google response:", res); // ✅ log full response
-                console.log("Google credential:", res.credential); // ✅ log token
+        {/* Email Login */}
+        <div className="flex flex-col gap-4 mt-8">
+          <input
+            className="w-full rounded-xl border border-emerald-200
+              bg-white/70 px-4 py-3 text-sm
+              outline-none focus:ring-2 focus:ring-emerald-400"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
 
-                const credential = res.credential;
-                if (!credential) return alert("No Google credential received");
+          <input
+            className="w-full rounded-xl border border-emerald-200
+              bg-white/70 px-4 py-3 text-sm
+              outline-none focus:ring-2 focus:ring-emerald-400"
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
 
-                const data = await loginGoogle(credential);
-                setAuth(data.token, data.role, data.email);
-                nav("/user");
-  }}
-  
-  onError={() => alert("Google login failed")}
-/>
+          <button
+            onClick={loginWithEmail}
+            className="w-full h-12 rounded-xl
+              text-white font-semibold text-sm
+              bg-gradient-to-r from-emerald-700 to-emerald-500
+              shadow-lg shadow-emerald-500/40
+              transition-all duration-200
+              hover:scale-[1.03]
+              active:scale-[0.97]"
+          >
+            Login with Email
+          </button>
+        </div>
 
-                
-          </div>
+        {/* Divider */}
+        <div className="my-6 flex items-center gap-3">
+          <div className="h-px flex-1 bg-emerald-300/40" />
+          <span className="text-xs font-semibold text-emerald-700/60">
+            OR
+          </span>
+          <div className="h-px flex-1 bg-emerald-300/40" />
+        </div>
+
+        {/* Google Login */}
+        <div className="flex justify-center">
+          <GoogleLogin
+            onSuccess={async (res) => {
+              if (!res.credential) return alert("No Google credential");
+
+              const data = await loginGoogle(res.credential);
+              setAuth(data.token, data.role, data.email);
+              nav("/user");
+            }}
+            onError={() => alert("Google login failed")}
+          />
         </div>
       </div>
-    </>
+    </div>
   );
 }

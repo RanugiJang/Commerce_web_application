@@ -10,15 +10,15 @@ public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
 
-    // ✅ Only ONE constructor (important)
+    
     public AuthController(IAuthService authService)
     {
         _authService = authService;
     }
 
-    // =========================
+    
     // REGISTER (LOCAL USER)
-    // =========================
+    
     [HttpPost("register")]
     public async Task<ActionResult<AuthResponseDto>> Register([FromBody] RegisterRequestDto request)
     {
@@ -33,9 +33,9 @@ public class AuthController : ControllerBase
         }
     }
 
-    // =========================
+    
     // LOGIN (LOCAL USER / ADMIN)
-    // =========================
+    
     [HttpPost("login")]
     public async Task<ActionResult<AuthResponseDto>> Login([FromBody] LoginRequestDto request)
     {
@@ -50,9 +50,9 @@ public class AuthController : ControllerBase
         }
     }
 
-    // =========================
+    
     // GOOGLE LOGIN
-    // =========================
+    
     [HttpPost("google")]
     public async Task<ActionResult<AuthResponseDto>> GoogleLogin([FromBody] GoogleLoginRequestDto request)
     {

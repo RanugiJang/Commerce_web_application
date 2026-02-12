@@ -1,5 +1,4 @@
 // frontend/src/auth/index.ts
-
 export type Role = "ADMIN" | "USER";
 
 export type AuthData = {

@@ -6,43 +6,21 @@ export default function Navbar() {
   const nav = useNavigate();
 
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        padding: "12px 24px",
-        background: "linear-gradient(90deg, #16a34a, #22c55e)",
-        color: "white",
-        boxShadow: "0 4px 12px rgba(0,0,0,0.08)"
-      }}
-    >
-      {/* Logo / Brand */}
-      <div
-        style={{
-          fontWeight: 900,
-          fontSize: 20,
-          letterSpacing: 0.5
-        }}
-      >
+    <div className="flex items-center px-6 py-3 text-white
+      bg-gradient-to-r from-emerald-700 to-emerald-500
+      shadow-[0_4px_12px_rgba(0,0,0,0.08)]">
+      
+      {/* Brand */}
+      <div className="font-extrabold text-xl tracking-wide">
         Commerce
       </div>
 
-      {/* Navigation Links */}
-      <div
-        style={{
-          display: "flex",
-          gap: 20,
-          marginLeft: 30
-        }}
-      >
+      {/* Links */}
+      <div className="ml-8 flex items-center gap-6">
         {role === "USER" && (
           <Link
             to="/user"
-            style={{
-              color: "white",
-              textDecoration: "none",
-              fontWeight: 600
-            }}
+            className="font-semibold text-white/90 hover:text-white transition"
           >
             User Panel
           </Link>
@@ -51,35 +29,18 @@ export default function Navbar() {
         {role === "ADMIN" && (
           <Link
             to="/admin"
-            style={{
-              color: "white",
-              textDecoration: "none",
-              fontWeight: 600
-            }}
+            className="font-semibold text-white/90 hover:text-white transition"
           >
             Admin Panel
           </Link>
         )}
       </div>
 
-      {/* Right Side */}
-      <div
-        style={{
-          marginLeft: "auto",
-          display: "flex",
-          alignItems: "center",
-          gap: 16
-        }}
-      >
+      {/* Right */}
+      <div className="ml-auto flex items-center gap-4">
         {email && (
-          <span
-            style={{
-              fontSize: 13,
-              background: "rgba(255,255,255,0.15)",
-              padding: "6px 10px",
-              borderRadius: 20
-            }}
-          >
+          <span className="text-xs font-semibold px-3 py-1.5 rounded-full
+            bg-white/15 border border-white/20">
             {email}
           </span>
         )}
@@ -89,16 +50,8 @@ export default function Navbar() {
             logout();
             nav("/login");
           }}
-          style={{
-            background: "white",
-            color: "#16a34a",
-            border: "none",
-            padding: "6px 14px",
-            borderRadius: 8,
-            fontWeight: 700,
-            cursor: "pointer",
-            transition: "0.2s"
-          }}
+          className="rounded-lg bg-white px-4 py-1.5 font-bold text-emerald-700
+            transition hover:bg-white/90 active:scale-[0.98]"
         >
           Logout
         </button>
