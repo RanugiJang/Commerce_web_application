@@ -96,13 +96,18 @@ export default function LoginUser() {
         <div className="flex justify-center">
           <GoogleLogin
             onSuccess={async (res) => {
-              if (!res.credential) return alert("No Google credential");
+  try {
+    if (!res.credential) return alert("No Google credential");
 
-              const data = await loginGoogle(res.credential);
-              setAuth(data.token, data.role, data.email);
-              nav("/user");
-            }}
-            onError={() => alert("Google login failed")}
+    const data = await loginGoogle(res.credential);
+    setAuth(data.token, data.role, data.email);
+    nav("/user");
+  } catch (e: any) {
+    console.error(e);
+    alert(e?.response?.data ?? "Google login failed");
+  }
+}}
+            //onError={() => alert("Google login failed")}
           />
         </div>
       </div>
