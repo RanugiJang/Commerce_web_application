@@ -33,12 +33,22 @@ Built using:
 
 # ⚙️ Backend Setup (ASP.NET Core)
 
+## Passwords
+-Admin Login: 
+Email: admin@commerce.com
+Password: Admin@123
+
+-User Login:
+Email: user@commerce.com
+Password: User@123
+
 ## 1️⃣ Requirements
 
 - .NET 8+
 - MySQL Server
 
----
+--- 
+
 
 ## 2️⃣ Configure `appsettings.json`
 
