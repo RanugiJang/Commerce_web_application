@@ -8,7 +8,6 @@ using System.Text;
 using System.Security.Claims;
 using System.Net;
 using System.Security.Authentication;
-
 ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls13;
 ServicePointManager.Expect100Continue = false;
 
