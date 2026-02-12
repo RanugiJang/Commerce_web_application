@@ -2,7 +2,7 @@ using Commerce.Api.Data;
 using Commerce.Api.DTOs;
 using Commerce.Api.Helpers;
 using Commerce.Api.Models;
-using Microsoft.AspNetCore.Authorization;
+using Google.Apis.Auth;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -13,7 +13,7 @@ using System.Text;
 namespace Commerce.Api.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/[controller]")] // /api/auth
 public class AuthController : ControllerBase
 {
     private readonly AppDbContext _db;
@@ -25,11 +25,11 @@ public class AuthController : ControllerBase
         _config = config;
     }
 
-    // POST: /api/Auth/register
+    // POST: /api/auth/register
     [HttpPost("register")]
     public async Task<ActionResult<AuthResponseDto>> Register([FromBody] RegisterRequestDto req)
     {
-        var email = req.Email.Trim().ToLower();
+        var email = (req.Email ?? "").Trim().ToLower();
 
         if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(req.Password))
             return BadRequest("Email and Password are required.");
@@ -53,20 +53,14 @@ public class AuthController : ControllerBase
         await _db.SaveChangesAsync();
 
         var token = CreateJwtToken(user.Email, role.Name);
-
-        return Ok(new AuthResponseDto
-        {
-            Token = token,
-            Email = user.Email,
-            Role = role.Name
-        });
+        return Ok(new AuthResponseDto { Token = token, Email = user.Email, Role = role.Name });
     }
 
-    // POST: /api/Auth/login
+    // POST: /api/auth/login
     [HttpPost("login")]
     public async Task<ActionResult<AuthResponseDto>> Login([FromBody] LoginRequestDto req)
     {
-        var email = req.Email.Trim().ToLower();
+        var email = (req.Email ?? "").Trim().ToLower();
 
         var user = await _db.Users
             .Include(u => u.Role)
@@ -74,36 +68,102 @@ public class AuthController : ControllerBase
 
         if (user is null) return Unauthorized("Invalid credentials.");
 
-        if (user.PasswordHash is null || !PasswordHelper.Verify(req.Password, user.PasswordHash))
+        // only LOCAL users can login with password
+        if (user.Provider != "LOCAL")
+            return Unauthorized("Use Google login for this account.");
+
+        if (string.IsNullOrWhiteSpace(user.PasswordHash) || !PasswordHelper.Verify(req.Password, user.PasswordHash))
             return Unauthorized("Invalid credentials.");
 
         var roleName = user.Role?.Name ?? "USER";
         var token = CreateJwtToken(user.Email, roleName);
 
-        return Ok(new AuthResponseDto
+        return Ok(new AuthResponseDto { Token = token, Email = user.Email, Role = roleName });
+    }
+
+    // POST: /api/auth/google
+    // Frontend sends Google ID token as { "credential": "<id_token>" }
+  [HttpPost("google")]
+public async Task<ActionResult<AuthResponseDto>> GoogleLogin(GoogleLoginRequestDto req)
+{
+    if (string.IsNullOrWhiteSpace(req.Credential))
+        return BadRequest("Missing google credential.");
+
+    GoogleJsonWebSignature.Payload payload;
+
+    try
+    {
+        payload = await GoogleJsonWebSignature.ValidateAsync(req.Credential, new GoogleJsonWebSignature.ValidationSettings
         {
-            Token = token,
-            Email = user.Email,
-            Role = roleName
+            Audience = new[] { _config["Google:ClientId"] }
         });
     }
-
-    // GET: /api/Auth/me  (needs token)
-    [Authorize]
-    [HttpGet("me")]
-    public IActionResult Me()
+    catch
     {
-        var email = User.FindFirstValue(ClaimTypes.Email) ?? User.Identity?.Name;
-        var role = User.FindFirstValue(ClaimTypes.Role);
-        return Ok(new { email, role });
+        return Unauthorized("Invalid Google token.");
     }
 
+    var email = payload.Email.Trim().ToLower();
+
+    // Ensure USER role exists
+    var role = await _db.Roles.FirstOrDefaultAsync(r => r.Name == "USER");
+    if (role == null) return BadRequest("USER role missing in DB.");
+
+    // Find or create user
+    var user = await _db.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.Email == email);
+
+    if (user == null)
+    {
+        user = new User
+        {
+            Email = email,
+            PasswordHash = null, // Google users don't have local password
+            RoleId = role.Id,
+            Provider = "GOOGLE"
+        };
+        _db.Users.Add(user);
+        await _db.SaveChangesAsync();
+
+        // reload role
+        user.Role = role;
+    }
+
+    var roleName = user.Role?.Name ?? "USER";
+    var token = CreateJwtToken(user.Email, roleName);
+
+    return Ok(new AuthResponseDto
+    {
+        Token = token,
+        Email = user.Email,
+        Role = roleName
+    });
+}
+
+
+    // GET: /api/auth/test
+    [HttpGet("test")]
+    public IActionResult Test()
+    {
+        return Ok("Auth controller works");
+    }
+
+    // ===================== JWT helper =====================
     private string CreateJwtToken(string email, string role)
     {
-        var key = _config["Jwt:Key"]!;
-        var issuer = _config["Jwt:Issuer"]!;
-        var audience = _config["Jwt:Audience"]!;
-        var expiresMinutes = int.Parse(_config["Jwt:ExpiresMinutes"]!);
+        var key = _config["Jwt:Key"];
+        var issuer = _config["Jwt:Issuer"];
+        var audience = _config["Jwt:Audience"];
+        var expiresMinutesStr = _config["Jwt:ExpiresMinutes"];
+
+        if (string.IsNullOrWhiteSpace(key) ||
+            string.IsNullOrWhiteSpace(issuer) ||
+            string.IsNullOrWhiteSpace(audience) ||
+            string.IsNullOrWhiteSpace(expiresMinutesStr))
+        {
+            throw new Exception("JWT config missing. Check appsettings.json Jwt section.");
+        }
+
+        var expiresMinutes = int.Parse(expiresMinutesStr);
 
         var claims = new List<Claim>
         {

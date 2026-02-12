@@ -1,13 +1,18 @@
+// frontend/src/api/axios.ts
 import axios from "axios";
+import { getToken } from "../auth";
 
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
+export const api = axios.create({
+  baseURL: "http://localhost:5048",
 });
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+  const token = getToken();
+
+  if (token) {
+    config.headers = config.headers ?? {};
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
   return config;
 });
-
-export default api;
