@@ -4,7 +4,8 @@ namespace Commerce.Api.Services;
 
 public interface IAuthService
 {
-    Task<AuthResponseDto> RegisterAsync(RegisterRequestDto req);
-    Task<AuthResponseDto> LoginAsync(LoginRequestDto req);
     Task<AuthResponseDto> GoogleLoginAsync(GoogleLoginRequestDto req);
+    Task<AuthResponseDto> LoginAsync(LoginRequestDto req);
+    Task<AuthResponseDto> RegisterAsync(RegisterRequestDto req);
 }
+

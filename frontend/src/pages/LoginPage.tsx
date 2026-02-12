@@ -16,6 +16,8 @@ export default function LoginPage() {
       <div
         style={{
           width: "500%",
+          paddingTop: 60,
+          paddingBottom: 60,
           maxWidth: 800,   // 🔥 Bigger width
           maxHeight: 800,
           background: "white",
@@ -31,7 +33,8 @@ export default function LoginPage() {
             margin: 0,
             fontSize: 60,
             fontWeight: 1000,
-            color: "#0f172a"
+            color: "#0f172a",
+            padding: 10,
           }}
         >
           Welcome to Commerce
@@ -60,6 +63,7 @@ export default function LoginPage() {
               style={{
                 width: "100%",
                 height: 52,   // 🔥 Taller button
+                padding: 10,
                 borderRadius: 12,
                 border: "none",
                 cursor: "pointer",
@@ -79,6 +83,7 @@ export default function LoginPage() {
               style={{
                 width: "100%",
                 height: 52,
+                padding: 10,
                 borderRadius: 12,
                 border: "2px solid #22c55e",
                 cursor: "pointer",

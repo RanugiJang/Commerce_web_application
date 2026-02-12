@@ -11,6 +11,7 @@ export default function LoginUser() {
   const styles: Record<string, React.CSSProperties> = {
     page: {
       minHeight: "100vh",
+      maxHeight: "100vh",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
@@ -30,7 +31,7 @@ export default function LoginUser() {
     },
     title: {
       margin: 0,
-      fontSize: 28,
+      fontSize: 30,
       fontWeight: 900,
       color: "#0f172a",
     },
@@ -41,19 +42,21 @@ export default function LoginUser() {
       lineHeight: 1.5,
     },
     hintBox: {
-      marginTop: 18,
+      marginTop: 30,
       padding: 12,
       borderRadius: 12,
       background: "rgba(34,197,94,0.08)",
       border: "1px solid rgba(34,197,94,0.18)",
       color: "#166534",
-      fontSize: 13,
+      fontSize: 15,
       fontWeight: 700,
     },
     googleWrap: {
-      marginTop: 28,
+      marginTop: 40,
       display: "flex",
       justifyContent: "center",
+      padding: 5,
+      
     },
   };
 
@@ -73,19 +76,21 @@ export default function LoginUser() {
           <div style={styles.googleWrap}>
             <GoogleLogin
               onSuccess={async (res) => {
-                try {
-                  const credential = res.credential;
-                  if (!credential) return alert("No Google credential received");
+                console.log("Google response:", res); // ✅ log full response
+                console.log("Google credential:", res.credential); // ✅ log token
 
-                  const data = await loginGoogle(credential);
-                  setAuth(data.token, data.role, data.email);
-                  nav("/user");
-                } catch (e: any) {
-                  alert(e?.response?.data ?? "Google login failed");
-                }
-              }}
-              onError={() => alert("Google login failed")}
-            />
+                const credential = res.credential;
+                if (!credential) return alert("No Google credential received");
+
+                const data = await loginGoogle(credential);
+                setAuth(data.token, data.role, data.email);
+                nav("/user");
+  }}
+  
+  onError={() => alert("Google login failed")}
+/>
+
+                
           </div>
         </div>
       </div>
