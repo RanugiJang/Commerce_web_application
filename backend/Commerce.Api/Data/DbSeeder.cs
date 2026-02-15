@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Commerce.Api.Data;
 
-public static class DbSeeder
+public static class DbSeeder // a static class that seeds the database with initial data, such as default roles and an admin user. It ensures that the database is created and migrated before seeding data.
 {
     public static async Task SeedAsync(AppDbContext db)
     {
-        await db.Database.MigrateAsync();
+        await db.Database.MigrateAsync(); //applies any pending migrations to the database, ensuring that the database schema is up to date before seeding data
 
         if (!await db.Roles.AnyAsync())
         {

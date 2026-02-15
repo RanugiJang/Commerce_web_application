@@ -1,21 +1,21 @@
-import React, { createContext, useContext, useMemo, useState } from "react";
+import React, { createContext, useContext, useMemo, useState } from "react"; 
+//manage authentication globally in frontend
+type Role = "ADMIN" | "USER" | null; //Defining a type for user roles, which can be either "ADMIN", "USER", or null (for unauthenticated users) 
 
-type Role = "ADMIN" | "USER" | null;
-
-type AuthState = {
+type AuthState = { 
   token: string | null;
   role: Role;
   email: string | null;
 };
 
-type AuthContextType = AuthState & {
+type AuthContextType = AuthState & { //Defining the shape of the AuthContext, which includes the authentication state (token, role, email) and two methods: setAuth for setting the authentication state and logout for clearing the authentication state.
   setAuth: (token: string, role: Role, email: string) => void;
   logout: () => void;
 };
 
-const AuthContext = createContext<AuthContextType | null>(null);
+const AuthContext = createContext<AuthContextType | null>(null); //Creating a React context for authentication, it will be used to provide the authentication state and methods to the components that need it.
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => { 
   const [token, setToken] = useState<string | null>(localStorage.getItem("token"));
   const [role, setRole] = useState<Role>((localStorage.getItem("role") as Role) ?? null);
   const [email, setEmail] = useState<string | null>(localStorage.getItem("email"));

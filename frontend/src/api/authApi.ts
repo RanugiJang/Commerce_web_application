@@ -6,7 +6,7 @@ export type AuthResponse = {
   role: "ADMIN" | "USER";
 };
 
-export const loginAdmin = async (email: string, password: string) => {
+export const loginAdmin = async (email: string, password: string) => { //Method to login an admin user, it sends a POST request to the /auth/login endpoint with the email and password, and returns the response data which contains the JWT token, email, and role of the logged in user.
   const res = await api.post<AuthResponse>("/auth/login", { email, password });
   return res.data;
 };

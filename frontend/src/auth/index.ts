@@ -1,3 +1,4 @@
+//starting file of the frontend application it renders the main app component in the root html element
 // frontend/src/auth/index.ts
 export type Role = "ADMIN" | "USER";
 

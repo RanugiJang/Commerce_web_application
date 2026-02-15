@@ -1,6 +1,6 @@
 namespace Commerce.Api.Models;
 
-public class User
+public class User //Model class for users, it contains the id, email, password hash, provider, and role of a user. The provider can be either "LOCAL" or "GOOGLE". The role is a foreign key to the Role model.
 {
     public int Id { get; set; }
     public string Email { get; set; } = "";

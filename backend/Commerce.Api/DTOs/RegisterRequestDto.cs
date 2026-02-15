@@ -1,6 +1,6 @@
 namespace Commerce.Api.DTOs;
 
-public class RegisterRequestDto
+public class RegisterRequestDto //DTO for registration requests, it contains the email, password, and role of the user trying to register
 {
     internal string? Role;
 

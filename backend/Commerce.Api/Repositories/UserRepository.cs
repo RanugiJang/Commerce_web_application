@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Commerce.Api.Repositories;
 
-public class UserRepository : IUserRepository
+public class UserRepository : IUserRepository //Implementation of the IUserRepository interface, it uses the AppDbContext to perform operations on users in the database
 {
     private readonly AppDbContext _db;
 

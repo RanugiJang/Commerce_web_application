@@ -7,7 +7,7 @@ export type Item = {
   quantity: number;
 };
 
-export const getItems = async () => {
+export const getItems = async () => { 
   const res = await api.get<Item[]>("/items");
   return res.data;
 };

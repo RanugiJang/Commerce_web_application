@@ -15,7 +15,7 @@ namespace Commerce.Api.Services;
 public class AuthService : IAuthService
 {
     private readonly AppDbContext _db;
-    private readonly IConfiguration _config;
+    private readonly IConfiguration _config; //Configuration for accessing appsettings.json values, such as JWT settings and Google Client ID
 
     public AuthService(AppDbContext db, IConfiguration config)
     {
@@ -26,7 +26,7 @@ public class AuthService : IAuthService
     
     // REGISTER (LOCAL)
     
-    public async Task<AuthResponseDto> RegisterAsync(RegisterRequestDto req)
+    public async Task<AuthResponseDto> RegisterAsync(RegisterRequestDto req) //Method to register a new user with local authentication, it checks if the email and password are valid, if the user already exists, and if the role is valid. If everything is valid, it creates a new user in the database and returns a JWT token for the newly registered user.
     {
         var email = (req.Email ?? "").Trim().ToLower();
         if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(req.Password))

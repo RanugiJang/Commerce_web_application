@@ -62,7 +62,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 
 // Repos & Services
-builder.Services.AddScoped<IItemRepository, ItemRepository>();
+builder.Services.AddScoped<IItemRepository, ItemRepository>(); 
 builder.Services.AddScoped<IItemService, ItemService>();
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();

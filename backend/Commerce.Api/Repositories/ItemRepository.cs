@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Commerce.Api.Repositories;
 
-public class ItemRepository : IItemRepository
+public class ItemRepository : IItemRepository //Implementation of the IItemRepository interface, it uses the AppDbContext to perform CRUD operations on items in the database
 {
     private readonly AppDbContext _db;
 
@@ -13,10 +13,9 @@ public class ItemRepository : IItemRepository
         _db = db;
     }
 
-    public Task<List<Item>> GetAllAsync()
+    public Task<List<Item>> GetAllAsync() //Method to get all items, it returns a list of items ordered by id in descending order
         => _db.Items.OrderByDescending(i => i.Id).ToListAsync();
-
-    public Task<Item?> GetByIdAsync(int id)
+    public Task<Item?> GetByIdAsync(int id) 
         => _db.Items.FirstOrDefaultAsync(i => i.Id == id);
 
     public async Task<Item> CreateAsync(Item item)
